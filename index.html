@@ -1,198 +1,239 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-
-    <link rel="icon" href="https://raw.githubusercontent.com/cocomeda/Calc/main/favicon.jpg" type="image/x-icon">
-
-  
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>爆速計算トレーニング</title>
+    <title>QuickCalc Pro</title>
     <style>
-        :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; }
-        body { font-family: sans-serif; text-align: center; background: #f0f4f8; margin: 0; padding: 10px; }
-        .card { background: white; max-width: 500px; margin: 0 auto; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        
-        /* ディスプレイエリア */
-        .info-bar { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; }
-        .display-area { font-size: 3.5rem; font-weight: bold; margin: 15px 0; min-height: 80px; color: var(--primary); }
-        #answer-display { font-size: 2.5rem; color: #555; height: 1.2em; border-bottom: 3px solid #ddd; margin-bottom: 20px; }
+        :root {
+            --bg: #f1f5f9; --card: #ffffff; --primary: #4f46e5; --text: #0f172a;
+            --success: #22c55e; --danger: #ef4444; --key-bg: #f8fafc;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg); color: var(--text);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0; touch-action: manipulation;
+        }
+        .container { width: 100%; max-width: 420px; padding: 15px; }
+        .card { background: var(--card); border-radius: 28px; padding: 25px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); }
 
-        /* 設定エリア */
-        .settings { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 15px; font-size: 0.9rem; text-align: left; }
-        .setting-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-        input[type="number"] { width: 50px; padding: 5px; border-radius: 5px; border: 1px solid #ccc; }
+        /* UI要素 */
+        .info-bar { display: flex; justify-content: space-between; align-items: center; font-size: 1rem; color: #94a3b8; font-weight: 700; }
+        .pace-indicator { font-size: 0.8rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; background: #f1f5f9; }
+        .pace-fast { background: #dbeafe; color: var(--primary); }
+        .pace-slow { background: #fee2e2; color: var(--danger); }
+        .progress-container { width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; margin: 10px 0; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s; }
 
-        /* テンキー */
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 300px; margin: 0 auto; }
-        .key { padding: 20px; font-size: 1.5rem; background: white; border: 2px solid #eee; border-radius: 10px; cursor: pointer; transition: 0.1s; }
-        .key:active { background: #e0e0e0; transform: scale(0.95); }
-        .key.clear { background: #fff3f3; color: var(--danger); }
+        #question { font-size: 4.8rem; font-weight: 800; margin: 10px 0; text-align: center; letter-spacing: -0.05rem; }
+        #answer-display { font-size: 3.5rem; height: 1.2em; color: var(--primary); font-weight: 700; margin-bottom: 20px; border-bottom: 4px solid #f1f5f9; display: flex; justify-content: center; align-items: center; }
+
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .key { border: none; background: var(--key-bg); padding: 18px 0; font-size: 1.8rem; font-weight: 700; border-radius: 16px; color: var(--text); cursor: pointer; box-shadow: 0 2px 0 #e2e8f0; }
+        .key:active { transform: translateY(2px); box-shadow: none; background: #e2e8f0; }
+        .key.clear { color: var(--danger); background: #fff1f2; }
         .key.zero { grid-column: span 2; }
 
+        .setting-item { margin-bottom: 15px; text-align: left; }
+        label { display: block; font-size: 0.85rem; font-weight: 700; color: #64748b; margin-bottom: 5px; }
+        select, input { width: 100%; padding: 12px; border: 2px solid #f1f5f9; border-radius: 12px; font-size: 1rem; font-weight: 600; outline: none; box-sizing: border-box; }
+        
+        /* プリセットボタン */
+        .preset-group { display: flex; gap: 5px; }
+        .preset-btn { flex: 1; padding: 10px 5px; border: 2px solid #f1f5f9; border-radius: 10px; background: white; font-size: 0.8rem; font-weight: 700; cursor: pointer; color: #64748b; }
+        .preset-btn.active { border-color: var(--primary); background: #eef2ff; color: var(--primary); }
+
+        #startBtn { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 16px; font-size: 1.3rem; font-weight: 800; cursor: pointer; margin-top: 10px; }
+        .history-item { display: flex; justify-content: space-between; padding: 10px; background: #f8fafc; border-radius: 10px; margin-bottom: 6px; font-size: 0.8rem; font-weight: 600; }
         .hidden { display: none; }
-        button#startBtn { width: 100%; padding: 15px; font-size: 1.2rem; background: var(--success); color: white; border: none; border-radius: 10px; cursor: pointer; }
+        .correct-anim { animation: flash 0.15s; }
+        @keyframes flash { 0% { background: #fff; } 50% { background: #dcfce7; } 100% { background: #fff; } }
+        #result-view { text-align: center; }
+        .final-time { font-size: 4rem; font-weight: 900; color: var(--primary); margin: 5px 0; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="info-bar">
-        <div id="timer">Time: 0.0s</div>
-        <div id="progress">1 / 10</div>
-    </div>
-
-    <div id="game-view" class="hidden">
-        <div class="display-area" id="question">---</div>
-        <div id="answer-display"></div>
+<div class="container">
+    <div class="card" id="mainCard">
         
-        <div class="keypad">
-            <button class="key" onclick="inputNum(7)">7</button>
-            <button class="key" onclick="inputNum(8)">8</button>
-            <button class="key" onclick="inputNum(9)">9</button>
-            <button class="key" onclick="inputNum(4)">4</button>
-            <button class="key" onclick="inputNum(5)">5</button>
-            <button class="key" onclick="inputNum(6)">6</button>
-            <button class="key" onclick="inputNum(1)">1</button>
-            <button class="key" onclick="inputNum(2)">2</button>
-            <button class="key" onclick="inputNum(3)">3</button>
-            <button class="key zero" onclick="inputNum(0)">0</button>
-            <button class="key clear" onclick="clearAns()">C</button>
-        </div>
-    </div>
-
-    <div id="setup-view">
-        <div class="settings">
-            <div class="setting-row">
-                <span>演算:</span>
-                <select id="opSelect">
-                    <option value="mul">掛け算 (×)</option>
-                    <option value="add">足し算 (+)</option>
-                    <option value="sub">引き算 (-)</option>
-                    <option value="div">割り算 (÷)</option>
+        <div id="setup-view">
+            <h2 style="margin:0 0 20px 0; text-align:center; font-weight:900;">QuickCalc</h2>
+            <div class="setting-item">
+                <label>演算</label>
+                <select id="opSelect" onchange="updateHistoryDisplay()">
+                    <option value="mul">掛け算</option><option value="add">足し算</option><option value="sub">引き算</option><option value="div">割り算</option>
                 </select>
             </div>
-            <div class="setting-row">
-                <span>数値1の範囲 (例:10〜99):</span>
-                <div>
-                    <input type="number" id="n1Min" value="10"> 〜 <input type="number" id="n1Max" value="99">
+            <div class="setting-item">
+                <label>数値1の範囲 (10~99等)</label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input type="number" id="n1Min" value="11" onchange="updateHistoryDisplay()">~<input type="number" id="n1Max" value="99" onchange="updateHistoryDisplay()">
                 </div>
             </div>
-            <div class="setting-row">
-                <span>数値2の範囲 (例:2〜9):</span>
-                <div>
-                    <input type="number" id="n2Min" value="2"> 〜 <input type="number" id="n2Max" value="9">
+            <div class="setting-item">
+                <label>数値2の範囲</label>
+                <div class="preset-group" id="n2Presets">
+                    <button class="preset-btn active" onclick="setN2(2,9,this)">2~9</button>
+                    <button class="preset-btn" onclick="setN2(11,29,this)">11~29</button>
+                    <button class="preset-btn" onclick="setN2(31,99,this)">31~99</button>
                 </div>
+                <input type="hidden" id="n2Min" value="2"><input type="hidden" id="n2Max" value="9">
             </div>
-            <div class="setting-row">
-                <span>問題数:</span>
-                <input type="number" id="totalCount" value="10">
+            <div class="setting-item">
+                <label>問題数</label>
+                <select id="totalCountSelect" onchange="updateHistoryDisplay()">
+                    <option value="10">10問</option><option value="30">30問</option><option value="50">50問</option><option value="100">100問</option>
+                </select>
+            </div>
+            <button id="startBtn" onclick="startGame()">スタート！</button>
+            <div style="margin-top:20px; border-top:2px solid #f8fafc; padding-top:15px;">
+                <div id="history-list"></div>
             </div>
         </div>
-        <button id="startBtn" onclick="startGame()">スタート！</button>
-        <p id="bestScore" style="margin-top:15px; font-weight:bold; color:#666;"></p>
+
+        <div id="game-view" class="hidden">
+            <div class="info-bar">
+                <span id="timer">0.0s</span>
+                <div id="pace-box" class="pace-indicator">Best: --</div>
+                <span id="progress-text">1 / 10</span>
+            </div>
+            <div class="progress-container"><div id="progress-bar"></div></div>
+            <div id="question">--</div>
+            <div id="answer-display"></div>
+            <div class="keypad">
+                <button class="key" onclick="inputNum(7)">7</button><button class="key" onclick="inputNum(8)">8</button><button class="key" onclick="inputNum(9)">9</button>
+                <button class="key" onclick="inputNum(4)">4</button><button class="key" onclick="inputNum(5)">5</button><button class="key" onclick="inputNum(6)">6</button>
+                <button class="key" onclick="inputNum(1)">1</button><button class="key" onclick="inputNum(2)">2</button><button class="key" onclick="inputNum(3)">3</button>
+                <button class="key zero" onclick="inputNum(0)">0</button><button class="key clear" onclick="clearAns()">C</button>
+            </div>
+        </div>
+
+        <div id="result-view" class="hidden">
+            <div id="record-badge" style="color:var(--success); font-weight:900;" class="hidden">NEW RECORD!</div>
+            <h2 style="margin:0; color:#94a3b8;">Total Time</h2>
+            <div class="final-time" id="final-time-display">0.00s</div>
+            <p id="result-stats" style="margin-bottom:25px; font-weight:700; color:#64748b;"></p>
+            <button id="startBtn" onclick="backToSetup()" style="background:var(--text)">トップに戻る</button>
+        </div>
+
     </div>
 </div>
 
 <script>
-    let currentAns = "";
-    let correctAns = 0;
-    let count = 0;
-    let totalQuestions = 10;
-    let startTime;
-    let timerInterval;
+    let currentAns = "", correctAns = 0, count = 0, totalQuestions = 10, startTime, timerInterval, bestTime = null;
+
+    window.onload = updateHistoryDisplay;
+
+    function setN2(min, max, btn) {
+        document.getElementById('n2Min').value = min;
+        document.getElementById('n2Max').value = max;
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateHistoryDisplay();
+    }
+
+    function getCurrentConfigKey() {
+        const op = document.getElementById('opSelect').value;
+        const n1 = `${document.getElementById('n1Min').value}-${document.getElementById('n1Max').value}`;
+        const n2 = `${document.getElementById('n2Min').value}-${document.getElementById('n2Max').value}`;
+        const qc = document.getElementById('totalCountSelect').value;
+        return `${op}_${n1}_${n2}_${qc}`;
+    }
 
     function startGame() {
-        totalQuestions = parseInt(document.getElementById('totalCount').value);
+        totalQuestions = parseInt(document.getElementById('totalCountSelect').value);
         count = 0;
-        document.getElementById('setup-view').classList.add('hidden');
-        document.getElementById('game-view').classList.remove('hidden');
+        const configKey = getCurrentConfigKey();
+        
+        const history = JSON.parse(localStorage.getItem('calc_history_v3') || '[]');
+        const matches = history.filter(h => h.configKey === configKey);
+        bestTime = matches.length ? Math.min(...matches.map(m => parseFloat(m.time))) : null;
+
+        switchView('game-view');
         startTime = Date.now();
-        timerInterval = setInterval(updateTimer, 100);
+        timerInterval = setInterval(() => {
+            const diff = (Date.now() - startTime) / 1000;
+            document.getElementById('timer').innerText = `${diff.toFixed(1)}s`;
+            updatePaceDisplay(diff);
+        }, 50);
         nextQuestion();
     }
 
-    function updateTimer() {
-        const diff = (Date.now() - startTime) / 1000;
-        document.getElementById('timer').innerText = `Time: ${diff.toFixed(1)}s`;
+    function updatePaceDisplay(currentTime) {
+        const paceBox = document.getElementById('pace-box');
+        if (!bestTime) { paceBox.innerText = "Target: --"; return; }
+        const bestPace = (bestTime / totalQuestions) * count;
+        const diff = currentTime - bestPace;
+        paceBox.innerText = `${diff <= 0 ? '-' : '+'}${Math.abs(diff).toFixed(1)}s`;
+        paceBox.className = `pace-indicator ${diff <= 0 ? 'pace-fast' : 'pace-slow'}`;
     }
 
     function nextQuestion() {
         count++;
-        if (count > totalQuestions) {
-            finishGame();
-            return;
+        if (count > totalQuestions) { finishGame(); return; }
+        if (count > 1) {
+            document.getElementById('mainCard').classList.add('correct-anim');
+            setTimeout(() => document.getElementById('mainCard').classList.remove('correct-anim'), 100);
         }
-        document.getElementById('progress').innerText = `${count} / ${totalQuestions}`;
-        currentAns = "";
-        updateAnsDisplay();
+        document.getElementById('progress-text').innerText = `${count} / ${totalQuestions}`;
+        document.getElementById('progress-bar').style.width = `${((count - 1) / totalQuestions) * 100}%`;
+        currentAns = ""; updateAnsDisplay();
 
         const op = document.getElementById('opSelect').value;
         const n1 = rand(parseInt(document.getElementById('n1Min').value), parseInt(document.getElementById('n1Max').value));
         const n2 = rand(parseInt(document.getElementById('n2Min').value), parseInt(document.getElementById('n2Max').value));
 
-        let qText = "";
-        if (op === 'mul') { qText = `${n1} × ${n2}`; correctAns = n1 * n2; }
-        else if (op === 'add') { qText = `${n1} + ${n2}`; correctAns = n1 + n2; }
-        else if (op === 'sub') { 
-            let a = Math.max(n1, n2), b = Math.min(n1, n2);
-            qText = `${a} - ${b}`; correctAns = a - b; 
-        }
-        else if (op === 'div') {
-            // 割り切れる問題を生成
-            let targetAns = n1; 
-            let divisor = n2;
-            let dividend = targetAns * divisor;
-            qText = `${dividend} ÷ ${divisor}`; correctAns = targetAns;
-        }
-
-        document.getElementById('question').innerText = qText;
+        if (op === 'mul') { document.getElementById('question').innerText = `${n1}×${n2}`; correctAns = n1 * n2; }
+        else if (op === 'add') { document.getElementById('question').innerText = `${n1}+${n2}`; correctAns = n1 + n2; }
+        else if (op === 'sub') { let a = Math.max(n1, n2), b = Math.min(n1, n2); document.getElementById('question').innerText = `${a}-${b}`; correctAns = a - b; }
+        else if (op === 'div') { document.getElementById('question').innerText = `${n1*n2}÷${n2}`; correctAns = n1; }
     }
 
-    function rand(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
     function inputNum(num) {
-        currentAns += num.toString();
-        updateAnsDisplay();
-        // 入力した瞬間に判定（桁数が一致するか、正解と同じになれば次へ）
-        if (parseInt(currentAns) === correctAns) {
-            setTimeout(nextQuestion, 100); // 正解時に一瞬待つ
-        } else if (currentAns.length >= correctAns.toString().length && parseInt(currentAns) !== correctAns) {
-            // 桁数が正解と同じなのに間違っている場合は赤くするなどの演出
-            document.getElementById('answer-display').style.color = 'red';
-        }
+        currentAns += num.toString(); updateAnsDisplay();
+        if (parseInt(currentAns) === correctAns) nextQuestion();
     }
-
-    function clearAns() {
-        currentAns = "";
-        updateAnsDisplay();
-    }
-
-    function updateAnsDisplay() {
-        const display = document.getElementById('answer-display');
-        display.innerText = currentAns;
-        display.style.color = '#555';
-    }
+    function clearAns() { currentAns = ""; updateAnsDisplay(); }
+    function updateAnsDisplay() { const d = document.getElementById('answer-display'); d.innerText = currentAns; d.style.color = 'var(--primary)'; }
 
     function finishGame() {
         clearInterval(timerInterval);
         const finalTime = (Date.now() - startTime) / 1000;
-        alert(`終了！タイム: ${finalTime.toFixed(2)}秒`);
-        
-        document.getElementById('setup-view').classList.remove('hidden');
-        document.getElementById('game-view').classList.add('hidden');
-        document.getElementById('bestScore').innerText = `前回のスコア: ${finalTime.toFixed(2)}秒 (${totalQuestions}問)`;
+        const configKey = getCurrentConfigKey();
+        const isNewRecord = bestTime === null || finalTime < bestTime;
+
+        let history = JSON.parse(localStorage.getItem('calc_history_v3') || '[]');
+        history.unshift({ time: finalTime.toFixed(2), configKey, date: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) });
+        localStorage.setItem('calc_history_v3', JSON.stringify(history.slice(0, 50)));
+
+        document.getElementById('final-time-display').innerText = `${finalTime.toFixed(2)}s`;
+        document.getElementById('record-badge').classList.toggle('hidden', !isNewRecord);
+        switchView('result-view');
+        updateHistoryDisplay();
     }
 
-    // キーボード入力にも対応
-    window.addEventListener('keydown', (e) => {
-        if (document.getElementById('game-view').classList.contains('hidden')) return;
-        if (e.key >= '0' && e.key <= '9') inputNum(e.key);
-        if (e.key === 'Backspace' || e.key === 'c') clearAns();
-    });
-</script>
+    function updateHistoryDisplay() {
+        const configKey = getCurrentConfigKey();
+        const history = JSON.parse(localStorage.getItem('calc_history_v3') || '[]');
+        const filtered = history.filter(h => h.configKey === configKey).slice(0, 5);
+        
+        const list = document.getElementById('history-list');
+        list.innerHTML = '<div style="font-size:0.8rem; font-weight:800; color:#94a3b8; margin-bottom:10px;">設定別の履歴</div>' + 
+            (filtered.length ? filtered.map(h => `
+            <div class="history-item">
+                <span style="color:var(--primary)">${h.time}s</span>
+                <span style="color:#cbd5e1; font-size:0.7rem;">${h.date}</span>
+            </div>`).join('') : '<div style="text-align:center; color:#cbd5e1; font-size:0.8rem;">この設定での記録はまだありません</div>');
+    }
 
+    function backToSetup() { switchView('setup-view'); }
+    function switchView(id) {
+        ['setup-view', 'game-view', 'result-view'].forEach(v => document.getElementById(v).classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
+</script>
 </body>
 </html>
